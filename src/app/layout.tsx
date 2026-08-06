@@ -1,0 +1,51 @@
+import '@/styles/globals.css'
+
+import type { Metadata } from 'next'
+import type { CSSProperties } from 'react'
+import Layout from '@/layout'
+import Head from '@/layout/head'
+import siteContent from '@/config/site-content.json'
+
+const {
+	meta: { title, description }
+} = siteContent
+
+export const metadata: Metadata = {
+	title,
+	description,
+	openGraph: {
+		title,
+		description
+	},
+	twitter: {
+		title,
+		description
+	}
+}
+
+const bodyStyle: CSSProperties & { '--color-brand'?: string } = {
+	cursor: 'url(/images/cursor.svg) 2 1, auto',
+	'--color-brand': siteContent.theme?.colorBrand
+}
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+	return (
+		<html lang='en' suppressHydrationWarning>
+			<Head />
+
+			<body style={bodyStyle}>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+						if (window && /windows|win32/i.test(navigator.userAgent)) {
+							setTimeout(() => document.documentElement.classList.add('windows'), 0)			
+						}
+			      `
+					}}
+				/>
+
+				<Layout>{children}</Layout>
+			</body>
+		</html>
+	)
+}
