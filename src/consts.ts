@@ -9,6 +9,6 @@ export const CARD_SPACING_SM = 24
 export const GITHUB_CONFIG = {
 	OWNER: process.env.NEXT_PUBLIC_GITHUB_OWNER || 'aiaod1009',
 	REPO: process.env.NEXT_PUBLIC_GITHUB_REPO || 'My-blog',
-	BRANCH: process.env.NEXT_PUBLIC_GITHUB_BRANCH || 'main',
+	BRANCH: process.env.NEXT_PUBLIC_GITHUB_BRANCH || 'master',
 	APP_ID: process.env.NEXT_PUBLIC_GITHUB_APP_ID || '4502227'
 } as const
