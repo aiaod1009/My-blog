@@ -4,6 +4,67 @@
 
 该项目使用 Github App 管理项目内容，请保管好后续创建的 **Private key**，不要上传到公开网上。
 
+---
+
+## 项目架构概览
+
+本项目基于 **Next.js 15+ App Router**，是一个支持 GitHub 托管内容管理的个人博客系统。
+
+### 目录结构
+
+```
+src/
+├── app/               # 所有页面路由（Next.js App Router）
+│   ├── (home)/        # 首页 — 卡片式仪表盘
+│   ├── about/         # /about 关于我
+│   ├── blog/          # /blog 博客列表 & /blog/[id] 详情
+│   ├── bloggers/      # /bloggers 友情链接
+│   ├── image-toolbox/ # /image-toolbox 图片转 WebP 工具
+│   ├── music/         # /music ⚠️ 未完成
+│   ├── projects/      # /projects 项目展示
+│   ├── rss.xml/       # /rss.xml RSS 订阅
+│   ├── share/         # /share 推荐资源
+│   ├── svgs/          # /svgs SVG 图标库
+│   ├── write/         # /write 写文章 & /write/[slug] 编辑
+│   └── layout.tsx     # 根布局
+├── components/        # 跨页面共享组件（Card, NavCard, BlogPreview, LikeButton 等）
+├── config/            # 站点静态配置
+├── hooks/             # 全局 Hooks（useAuth, useBlogIndex, useCenter, useSize 等）
+├── layout/            # 布局骨架（Header, Footer, 动态气泡背景）
+├── lib/               # 工具库（GitHub API, 认证, Markdown 渲染）
+├── styles/            # 全局 CSS
+├── svgs/              # SVG 图标资源
+└── consts.ts          # 应用常量（GitHub 配置等）
+```
+
+### 路由一览
+
+| 路由 | 类型 | 说明 |
+|------|------|------|
+| `/` | 首页 | 卡片式仪表盘，可拖拽编辑布局 |
+| `/about` | 页面 | 可在线编辑的关于我 |
+| `/blog` | 列表 | 博客文章列表（按年份分组） |
+| `/blog/[id]` | 详情 | Markdown 文章渲染 + TOC + 点赞 |
+| `/bloggers` | 列表 | 友情链接网格 |
+| `/projects` | 列表 | 项目展示网格 |
+| `/share` | 列表 | 推荐资源网格 |
+| `/svgs` | 页面 | SVG 图标库（搜索 + 复制） |
+| `/write` | 编辑器 | 写新文章 |
+| `/write/[slug]` | 编辑器 | 编辑已有文章 |
+| `/image-toolbox` | 工具 | PNG/JPG 转 WebP |
+| `/rss.xml` | RSS | RSS 订阅源 |
+
+### 架构特点
+
+- **Next.js 15 App Router** — 基于文件系统的路由
+- **GitHub 即数据库** — 所有内容通过 GitHub API 读写，无需独立后端
+- **Zustand 状态管理** — 全局和页面级状态管理
+- **SWR 数据获取** — 浏览器端数据请求和缓存
+- **motion 动画** — 页面过渡和卡片动画
+- **Shiki 语法高亮** — Markdown 代码块高亮
+
+---
+
 ## 1. 安装
 
 使用该项目可以先不做本地开发，直接部署然后配置环境变量。具体变量名请看下列大写变量
