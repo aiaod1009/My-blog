@@ -80,19 +80,86 @@ export const GITHUB_CONFIG = {
 
 也可以自己手动先调整安装，可自行 `pnpm i`
 
-## 2. 部署
+## 2. 部署到自己的服务器
 
-我这里熟悉 Vercel 部署，就以 Vercel 部署为例子。创建 Project => Import 这个项目
+本项目部署在自己的服务器上（不使用 Vercel），通过 **PM2 + Nginx + GitHub Actions** 实现自动化部署。整体流程：
 
-![](https://www.yysuni.com/blogs/readme/730266f17fab9717.png)
+```
+网页上改内容 / 本地 git push
+        │
+        ▼
+GitHub 仓库收到新 commit
+        │
+        ▼
+GitHub Actions 自动触发（.github/workflows/deploy.yml）
+        │  SSH 登录服务器执行：
+        │  git pull → npm install → npm run build → pm2 restart my-blog
+        ▼
+服务器上的 Next.js 完成更新（Nginx 反代 3001 端口）
+```
 
-无需配置，直接点部署
+### 2.1 服务器环境准备
 
-![](https://www.yysuni.com/blogs/readme/95dee9a69154d0d0.png)
+- 一台云服务器（如 Ubuntu），域名已解析并配置好 SSL 证书
+- 已安装 Node.js（≥18）和 npm
 
-大约 60 秒会部署完成，有一个直接 vercel 域名，如：https://2025-blog-public.vercel.app/
+```bash
+npm install -g pm2
+git clone 你的仓库地址 /home/ubuntu/My-blog
+cd /home/ubuntu/My-blog
+npm install
+npm run build
+```
 
-到这里部署网站已经完成了，下一步创建 Github App
+### 2.2 PM2 保活运行
+
+项目根目录已包含 `ecosystem.config.js`（Next.js 运行在 3001 端口）：
+
+```bash
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup    # 执行后复制提示的 sudo 命令运行，实现开机自启
+```
+
+### 2.3 Nginx 反向代理
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name 你的域名;
+
+    ssl_certificate     /etc/letsencrypt/live/你的域名/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/你的域名/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+```bash
+sudo nginx -s reload
+```
+
+### 2.4 GitHub Actions 自动部署
+
+仓库已包含 `.github/workflows/deploy.yml`：每次 push 到 `master` 分支，都会通过 SSH 登录服务器自动执行 `git pull → npm install → npm run build → pm2 restart my-blog`。
+
+需要在 GitHub 仓库 **Settings → Secrets and variables → Actions** 中配置三个 Secrets：
+
+| Name | 值 | 说明 |
+|------|-----|------|
+| `SERVER_HOST` | 服务器域名或 IP | 如 `aiaod.cn` |
+| `SERVER_USER` | SSH 登录用户名 | 如 `ubuntu` |
+| `SERVER_SSH_KEY` | 服务器私钥全文 | 在服务器执行 `cat ~/.ssh/id_ed25519` 获取 |
+
+配置完成后，任何 push（包括网页上通过 GitHub App 提交的 commit）都会自动触发部署，约 1-3 分钟后网站内容更新。可在仓库的 **Actions** 标签页查看部署进度。
+
+> 更详细的服务器部署说明和踩坑记录见 [blog.md](blog.md)。
 
 ## 3. 创建 Github App 链接仓库
 
@@ -133,16 +200,15 @@ export const GITHUB_CONFIG = {
 
 ![](https://www.yysuni.com/blogs/readme/c5a049d737848abf.png)
 
-设置完成后，需要手动再部署一次，让环境变量生效。
-* 可以直接 push 一次仓库代码会触发部署
-* 也可以手动选择创建一次部署
-![](https://www.yysuni.com/blogs/readme/59a802ed8d1c3a13.png)
+设置完成后，需要让新配置在服务器上生效：
+* 直接 push 一次仓库代码，GitHub Actions 会自动完成部署
+* 也可以 SSH 到服务器手动执行 `git pull && npm run build && pm2 restart my-blog`
 
 ## 4. 完成
 
 现在，部署的这个网站就可以开始使用前端改内容了。比如更改一个分享内容。
 
-**提示**，网站前端页面删改完提示成功之后，你需要等待后台的部署完成，再刷新页面才能完成服务器内容的更新哦。
+**提示**，网站前端页面删改完提示成功之后，GitHub Actions 会自动触发服务器部署，你需要等待部署完成（约 1-3 分钟，可在仓库 Actions 页面查看进度），再刷新页面才能看到服务器内容的更新哦。
 
 ## 5. 删除
 
@@ -189,18 +255,6 @@ const LiquidGrass = dynamic(() => import('@/components/liquid-grass'), { ssr: fa
 
 ![](https://www.yysuni.com/blogs/readme/20b0791d012163ee.png)
 
-## 9. 互助群
-
-对于完全不是**程序员**的用户，确实会对于更新代码后，如何同步，如何**合并代码**手足无措。我创建了一个 **QQ群**（加群会简单点），或者 vx 群还是 tg 群会好一点可以 issue 里面说下就行。
-
-QQ 群：[https://qm.qq.com/q/spdpenr4k2](https://qm.qq.com/q/spdpenr4k2)
-> 不好意思，之前的那个qq群ID（1021438316），不知道为啥搜不到😂
-
-应该主要是我自己亲自帮助你们遇到问题怎么办。（后续看看有没有好心人）
-
-希望多多的非程序员加入 blogger 行列，web blog 还是很好玩的，属于自己的 blog 世界。
-
-游戏资产不一定属于你的，你只有**使用权**，但这个 blog **网站、内容、仓库一定是属于你的**
 
 #### 特殊的导航 Card
 
