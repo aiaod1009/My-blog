@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
 	reactStrictMode: false,
 	reactCompiler: true,
 	pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+	images: {
+		// 优化图片默认缓存一年且 immutable，换头像等同名文件后浏览器不会重新请求
+		// 改为 60 秒，普通刷新即可看到新图
+		minimumCacheTTL: 60
+	},
 	experimental: {
 		scrollRestoration: false
 	},
